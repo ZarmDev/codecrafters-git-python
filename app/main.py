@@ -61,9 +61,6 @@ def main():
             filetype = decompressed_data[0:4].decode()
             size = decompressed_data[5:8].decode()
             content = decompressed_data[8:].decode()
-            # prevent newline
-            # print(filetype)
-            # print(size)
             print(content, end="")
     elif command == "hash-object":
         blob = sys.argv[3]
@@ -82,6 +79,76 @@ def main():
         os.chdir(hash[0:2])
         with open(hash[2:], "wb") as f:
             f.write(zlib.compress(new_content))
+    elif command == 'ls-tree':
+        '''Just like blobs, tree objects are stored in the .git/objects directory. 
+        If the hash of a tree object is e88f7a929cd70b0274c4ea33b209c97fa845fdbc, 
+        the path to the object would be ./git/objects/e8/8f7a929cd70b0274c4ea33b209c97fa845fdbc.
+        Tree object format:
+        tree <size>\0
+        <mode> <name>\0<20_byte_sha>
+        <mode> <name>\0<20_byte_sha>
+        '''
+        # First, change the directory to .git/objects 
+        givenHash = sys.argv[3]
+        # print(sys.argv)
+        # Use the first two characters to access the "e8" part
+        os.chdir('.git/objects')
+        os.chdir(str(givenHash[:2]))
+        # Use the second part of the hash to access the file with the tree data
+        with open(str(givenHash[2:]), 'rb') as f:
+            contents = f.read()
+            decompressed_data = zlib.decompress(contents)
+            # apparently this is the correct way to split the decompressed data
+            firstSplit = decompressed_data.split(b'\0', 1)
+            filetype, size = firstSplit[0].decode().split(' ')
+            # print(filetype, size)
+            '''
+            firstSplit has two items:
+            0:
+            tree <size>
+            1:
+            <mode> <name>\0<20_byte_sha>
+            <mode> <name>\0<20_byte_sha>
+            <mode> <name>\0<20_byte_sha>
+            <mode> <name>\0<20_byte_sha>
+            '''
+            '''
+            <mode> <name>\0
+            <20_byte_sha><mode> <name>\0
+            <20_byte_sha><mode> <name>\0
+            '''
+            # we should expect four items
+            # <mode> <name>
+            # \0<20_byte_sha>
+            #<mode> <name>
+            # \0<20_byte_sha>
+            otherHalfOfData = firstSplit[1].split(b'\0')
+            # do the exception first, and then remove it
+            # the exception looks like <mode> <name>\0
+            mode, name = otherHalfOfData[0].decode().split(' ')
+            print(name)
+            # skip first item, since it's an exception
+            otherHalfOfData = otherHalfOfData[1:]
+            # print(otherHalfOfData)
+            for i in otherHalfOfData:
+                # i[1] is the sha value
+                # all the values here look like <20_byte_sha><mode> <name>\0
+                try:
+                    mode, name = i[20:].decode().split(' ')
+                    # mode, name = i.decode().split(' ')
+                    print(name)
+                except:
+                    None
+
+            # mode, name = firstSplit[1].split(b'\0')[0].decode().split(' ')
+            '''
+            content looks like:
+            
+            '''
+            # content = content.decode()
+            # print(content)
+        # Then, access the file using the rest of the hash
+
     else:
         raise RuntimeError(f"Unknown command #{command}")
 
