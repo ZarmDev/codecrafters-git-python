@@ -1,0 +1,1 @@
+# I didn't add much code but I did create a diagram and I realized that I should start using hashlib (much better than my current method) next time I will work on that

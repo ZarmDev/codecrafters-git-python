@@ -62,7 +62,6 @@ For directories, the value is 040000'''
     tree_object = f"tree {total_size}\0"
     print(tree_object)
 
-# i hope this doesn't brick my pc...
 def write_tree_on_each_file_in_directory(directory_name):
     print("working directory!", directory_name)
     # although the name is file, it can be a file or directory
@@ -72,10 +71,10 @@ def write_tree_on_each_file_in_directory(directory_name):
             if file == '.git':
                 continue
             sha_hash = None
-            file_path = os.path.join('.', file)
             # If the entry is a file, create a blob object and record its SHA hash
             if os.path.isfile(file):
                 with open(file, 'rb') as f:
+                    file_path = os.getcwd() + file
                     blobsize = get_size(file_path)
                     contents = open(file_path, "rb").read()
                     blob_object = b"blob " + str(blobsize).encode() + b'\0' + contents
@@ -90,6 +89,8 @@ def write_tree_on_each_file_in_directory(directory_name):
                 <20_byte_sha><mode> <name>\0
                 <20_byte_sha><mode> <name>\0
                 '''
+                file_path = os.getcwd()
+                print(file_path, 'JOJO!')
                 create_tree_object(file_path)
                 
 
@@ -210,7 +211,6 @@ def main():
                     
     else:
         raise RuntimeError(f"Unknown command #{command}")
-
 
 if __name__ == "__main__":
     main()
